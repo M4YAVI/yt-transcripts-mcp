@@ -19,7 +19,7 @@ async def main():
         print("\n✅ Client connected to HTTP server.")
 
         # Test with a video that has transcripts
-        video_with_transcript = "https://www.youtube.com/watch?v=LCEmiRjPEtQ"
+        video_with_transcript = "https://www.youtube.com/watch?v=pF1UvN7SEGU"
         print(f"\n1. Fetching transcript for: {video_with_transcript}")
 
         try:
@@ -31,10 +31,12 @@ async def main():
             print(f"Transcript length: {len(full_transcript)} characters")
             print("----------------------------------------")
 
-            # Use Ollama DeepSeek R1:8B to create intelligent notes
+            # Use Ollama DeepSeek R1:8B to create intelligent notes with streaming
             print("\n🧠 Generating 200IQ genius notes with DeepSeek R1:8B...")
+            print("\n--- 🧠 200IQ GENIUS NOTES ---\n")
 
-            response = ollama.chat(
+            # Stream the response
+            stream = ollama.chat(
                 model="deepseek-r1:8b",
                 messages=[
                     {
@@ -61,15 +63,19 @@ TRANSCRIPT:
 Create comprehensive yet concise notes that a 200IQ person would make for quick reference.""",
                     },
                 ],
+                stream=True,  # Enable streaming
             )
 
-            genius_notes = response["message"]["content"]
+            # Collect the full response while streaming
+            genius_notes = ""
+            for chunk in stream:
+                content = chunk["message"]["content"]
+                print(content, end="", flush=True)  # Print each chunk as it arrives
+                genius_notes += content
 
-            print("\n--- 🧠 200IQ GENIUS NOTES ---")
-            print(genius_notes)
-            print("\n--- END OF NOTES ---")
+            print("\n\n--- END OF NOTES ---")
 
-            # Optionally save notes to file
+            # Save notes to file
             with open("youtube_notes.md", "w", encoding="utf-8") as f:
                 f.write(f"# YouTube Video Notes\n\n")
                 f.write(f"**Video URL:** {video_with_transcript}\n\n")
